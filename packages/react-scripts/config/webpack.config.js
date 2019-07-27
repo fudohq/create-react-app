@@ -82,13 +82,9 @@ const getCSSModuleLocalIdentProd = function(
     5
   );
   // Use loaderUtils to find the file or folder name
-  const className = loaderUtils.interpolateName(
-    context,
-    fileNameOrFolder + '_' + localName + '__' + hash,
-    options
-  );
+  const className = loaderUtils.interpolateName(context, hash, options);
   // remove the .module that appears in every classname when based on the file.
-  return hash;
+  return className.replace('.module_', '_');
 };
 
 // This is the production and development configuration.
