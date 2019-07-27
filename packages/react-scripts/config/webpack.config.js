@@ -27,7 +27,6 @@ const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getCSSModuleLocalIdent = require('react-dev-utils/getCSSModuleLocalIdent');
-const getCSSModuleLocalIdentProd = require('react-dev-utils/getCSSModuleLocalIdentProd');
 const paths = require('./paths');
 const modules = require('./modules');
 const getClientEnvironment = require('./env');
@@ -39,6 +38,9 @@ const eslint = require('eslint');
 const getCacheIdentifier = require('react-dev-utils/getCacheIdentifier');
 // @remove-on-eject-end
 const postcssNormalize = require('postcss-normalize');
+
+// COPIED FROM react-dev-utils/getCSSModuleLocalIdent.js
+const loaderUtils = require('loader-utils');
 
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
@@ -58,6 +60,36 @@ const cssRegex = /\.css$/;
 const cssModuleRegex = /\.module\.css$/;
 const sassRegex = /\.(scss|sass)$/;
 const sassModuleRegex = /\.module\.(scss|sass)$/;
+
+// Copied from react-dev-utils/getCSSModuleLocalIdent.js
+const getCSSModuleLocalIdentProd = function(
+  context,
+  localIdentName,
+  localName,
+  options
+) {
+  // Use the filename or folder name, based on some uses the index.js / index.module.(css|scss|sass) project style
+  const fileNameOrFolder = context.resourcePath.match(
+    /index\.module\.(css|scss|sass)$/
+  )
+    ? '[folder]'
+    : '[name]';
+  // Create a hash based on a the file location and class name. Will be unique across a project, and close to globally unique.
+  const hash = loaderUtils.getHashDigest(
+    path.posix.relative(context.rootContext, context.resourcePath) + localName,
+    'md5',
+    'base64',
+    5
+  );
+  // Use loaderUtils to find the file or folder name
+  const className = loaderUtils.interpolateName(
+    context,
+    fileNameOrFolder + '_' + localName + '__' + hash,
+    options
+  );
+  // remove the .module that appears in every classname when based on the file.
+  return hash;
+};
 
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
